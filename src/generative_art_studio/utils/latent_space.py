@@ -47,4 +47,4 @@ def interpolate_latent(z1: torch.Tensor, z2: torch.Tensor, steps: int = 10) -> t
     #     "interpolation formula and torch.linspace hint."
     # )
     t = torch.linspace(0, 1, steps, device=z1.device, dtype=z1.dtype)
-    return (1 - t).unsqueeze(1) * z1 + t.unsqueeze(1) * z2
+    return (1 - t.unsqueeze(1)) * z1 + t.unsqueeze(1) * z2
