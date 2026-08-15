@@ -40,11 +40,15 @@ def vae_loss(
         (total_loss, recon_loss, kl_loss) — all three are returned so you
         can log them separately during training.
     """
-    raise NotImplementedError(
-        "TODO: implement vae_loss — MSE reconstruction term + closed-form "
-        "Gaussian KL divergence term, combined as recon_loss + kl_weight * kl_loss."
-    )
-
+    # raise NotImplementedError(
+    #     "TODO: implement vae_loss — MSE reconstruction term + closed-form "
+    #     "Gaussian KL divergence term, combined as recon_loss + kl_weight * kl_loss."
+    # )
+    recon_loss = F.mse_loss(recon_x, x, reduction="sum") / x.size(0)
+    kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp()) / x.size(0)
+    total = recon_loss + kl_weight * kl_loss
+    
+    return total, recon_loss, kl_loss
 
 # ---------------------------------------------------------------------------
 # Phase 2 — Vanilla / DCGAN / Conditional GAN adversarial loss (BCE-based)
