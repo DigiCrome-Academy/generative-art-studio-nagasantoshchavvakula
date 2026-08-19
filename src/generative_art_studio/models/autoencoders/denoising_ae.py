@@ -25,11 +25,12 @@ def add_gaussian_noise(x: torch.Tensor, noise_factor: float = 0.3) -> torch.Tens
     Clamp the result back to the valid image range [-1, 1] (images in this
     project are normalized with Normalize(0.5, 0.5)) before returning.
     """
-    raise NotImplementedError(
-        "TODO: implement add_gaussian_noise — add noise_factor * torch.randn_like(x) "
-        "to x, then torch.clamp(..., -1.0, 1.0)."
-    )
-
+    # raise NotImplementedError(
+    #     "TODO: implement add_gaussian_noise — add noise_factor * torch.randn_like(x) "
+    #     "to x, then torch.clamp(..., -1.0, 1.0)."
+    # )
+    noisy = x + noise_factor * torch.randn_like(x)
+    return torch.clamp(noisy, -1.0, 1.0)
 
 class DenoisingAutoencoder(VanillaAutoencoder):
     """Same architecture as VanillaAutoencoder; trained on noisy inputs.
