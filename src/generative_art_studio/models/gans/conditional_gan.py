@@ -86,6 +86,11 @@ class ConditionalDiscriminator(nn.Module):
         `labels` with `self.label_embedding`, concatenate
         `[flat_img, label_emb]` along dim=1, and pass through `self.net`.
         """
-        raise NotImplementedError(
-            "TODO: flatten img, embed labels, concatenate, run through self.net."
-        )
+        # raise NotImplementedError(
+        #     "TODO: flatten img, embed labels, concatenate, run through self.net."
+        # )
+        flat_img = img.flatten(1)
+        label_emb = self.label_embedding(labels)
+        combined = torch.cat([flat_img, label_emb], dim=1)
+        
+        return self.net(combined)
