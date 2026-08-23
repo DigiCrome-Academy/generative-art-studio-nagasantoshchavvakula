@@ -109,8 +109,8 @@ def wgan_generator_loss(fake_score: torch.Tensor) -> torch.Tensor:
     TODO(Phase 2 - WGAN training stability): implement
         return -fake_score.mean()
     """
-    raise NotImplementedError("TODO: implement wgan_generator_loss — return -fake_score.mean().")
-
+    # raise NotImplementedError("TODO: implement wgan_generator_loss — return -fake_score.mean().")
+    return -fake_score.mean()
 
 def gradient_penalty(
     critic: Callable[[torch.Tensor], torch.Tensor],
