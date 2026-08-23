@@ -81,10 +81,10 @@ def generator_loss(fake_pred: torch.Tensor) -> torch.Tensor:
     (rather than minimizing `log(1 - D(G(z)))`, which saturates early in
     training — see docs/PROJECT_BRIEF.md's "training instability" topic).
     """
-    raise NotImplementedError(
-        "TODO: implement generator_loss using bce_loss(fake_pred, ones_like(fake_pred))."
-    )
-
+    # raise NotImplementedError(
+    #     "TODO: implement generator_loss using bce_loss(fake_pred, ones_like(fake_pred))."
+    # )
+    return bce_loss(fake_pred, torch.ones_like(fake_pred))
 
 # ---------------------------------------------------------------------------
 # Phase 2 — WGAN / WGAN-GP loss (Wasserstein distance + gradient penalty)
