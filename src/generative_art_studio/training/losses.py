@@ -133,10 +133,33 @@ def gradient_penalty(
         5. Flatten the gradient to (B, -1), take its L2 norm per sample,
            and return `((grad_norm - 1) ** 2).mean()`.
     """
-    raise NotImplementedError(
-        "TODO: implement the WGAN-GP gradient penalty — see the docstring's 5-step recipe."
-    )
+    # raise NotImplementedError(
+    #     "TODO: implement the WGAN-GP gradient penalty — see the docstring's 5-step recipe."
+    # )
+    eps = torch.rand(
+        real.size(0),
+        *([1] * (real.dim() - 1)), 
+        device=device
+        )
 
+    interpolated = (
+        eps * real + (1 - eps) * fake
+    ).requires_grad_(True)
+
+    scores = critic(interpolated)
+
+    gradients = torch.autograd.grad(
+        outputs=scores,
+        inputs=interpolated,
+        grad_outputs=torch.ones_like(scores),
+        create_graph=True,
+        retain_graph=True,
+    )[0]
+
+    gradients = gradients.view(gradients.size(0), -1)
+    grad_norm = gradients.norm(2, dim=1)
+
+    return ((grad_norm - 1) ** 2).mean()
 
 # ---------------------------------------------------------------------------
 # Phase 3 — Pix2Pix loss (adversarial + L1 reconstruction)
