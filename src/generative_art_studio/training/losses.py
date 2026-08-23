@@ -63,10 +63,13 @@ def discriminator_loss(real_pred: torch.Tensor, fake_pred: torch.Tensor) -> torc
         return (real_loss + fake_loss) / 2
     (`bce_loss` is provided at module level.)
     """
-    raise NotImplementedError(
-        "TODO: implement discriminator_loss using bce_loss against ones (real) "
-        "and zeros (fake), averaged."
-    )
+    # raise NotImplementedError(
+    #     "TODO: implement discriminator_loss using bce_loss against ones (real) "
+    #     "and zeros (fake), averaged."
+    # )
+    real_loss = bce_loss(real_pred, torch.ones_like(real_pred))
+    fake_loss = bce_loss(fake_pred, torch.zeros_like(fake_pred))
+    return(real_loss + fake_loss)/2
 
 
 def generator_loss(fake_pred: torch.Tensor) -> torch.Tensor:
