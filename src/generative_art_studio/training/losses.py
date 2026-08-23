@@ -98,10 +98,10 @@ def wgan_critic_loss(real_score: torch.Tensor, fake_score: torch.Tensor) -> torc
     output is an unbounded score, and this loss approximates the (negative)
     Earth-Mover / Wasserstein distance between real and fake distributions.
     """
-    raise NotImplementedError(
-        "TODO: implement wgan_critic_loss — return fake_score.mean() - real_score.mean()."
-    )
-
+    # raise NotImplementedError(
+    #     "TODO: implement wgan_critic_loss — return fake_score.mean() - real_score.mean()."
+    # )
+    return fake_score.mean() - real_score.mean()
 
 def wgan_generator_loss(fake_score: torch.Tensor) -> torch.Tensor:
     """Wasserstein generator loss: maximize fake_score, i.e. minimize -fake_score.
