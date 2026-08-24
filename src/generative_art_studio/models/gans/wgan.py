@@ -30,10 +30,35 @@ class WGANCritic(nn.Module):
     def __init__(self, img_channels: int = 3, feature_maps: int = 64, use_instance_norm: bool = True):
         super().__init__()
         self.feature_maps = feature_maps
-        self.net: nn.Sequential | None = None  # TODO: build per the docstring above
-        raise NotImplementedError(
-            "TODO: build self.net as described in the class docstring, "
-            "then remove this raise."
+        # self.net: nn.Sequential | None = None  # TODO: build per the docstring above
+        # raise NotImplementedError(
+        #     "TODO: build self.net as described in the class docstring, "
+        #     "then remove this raise."
+        # )
+        norm = nn.InstanceNorm2d if use_instance_norm else nn.BatchNorm2d
+
+        self.net = nn.Sequential(
+            # 64x64 -> 32x32
+            nn.Conv2d(img_channels, feature_maps, 4, 2, 1),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            # 32x32 -> 16x16
+            nn.Conv2d(feature_maps, feature_maps * 2, 4, 2, 1),
+            norm(feature_maps * 2),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            # 16x16 -> 8x8
+            nn.Conv2d(feature_maps * 2, feature_maps * 4, 4, 2, 1),
+            norm(feature_maps * 4),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            # 8x8 -> 4x4
+            nn.Conv2d(feature_maps * 4, feature_maps * 8, 4, 2, 1),
+            norm(feature_maps * 8),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            # 4x4 -> 1x1
+            nn.Conv2d(feature_maps * 8, 1, 4, 1, 0),
         )
 
     def forward(self, img: torch.Tensor) -> torch.Tensor:

@@ -63,10 +63,13 @@ def discriminator_loss(real_pred: torch.Tensor, fake_pred: torch.Tensor) -> torc
         return (real_loss + fake_loss) / 2
     (`bce_loss` is provided at module level.)
     """
-    raise NotImplementedError(
-        "TODO: implement discriminator_loss using bce_loss against ones (real) "
-        "and zeros (fake), averaged."
-    )
+    # raise NotImplementedError(
+    #     "TODO: implement discriminator_loss using bce_loss against ones (real) "
+    #     "and zeros (fake), averaged."
+    # )
+    real_loss = bce_loss(real_pred, torch.ones_like(real_pred))
+    fake_loss = bce_loss(fake_pred, torch.zeros_like(fake_pred))
+    return(real_loss + fake_loss)/2
 
 
 def generator_loss(fake_pred: torch.Tensor) -> torch.Tensor:
@@ -78,10 +81,10 @@ def generator_loss(fake_pred: torch.Tensor) -> torch.Tensor:
     (rather than minimizing `log(1 - D(G(z)))`, which saturates early in
     training — see docs/PROJECT_BRIEF.md's "training instability" topic).
     """
-    raise NotImplementedError(
-        "TODO: implement generator_loss using bce_loss(fake_pred, ones_like(fake_pred))."
-    )
-
+    # raise NotImplementedError(
+    #     "TODO: implement generator_loss using bce_loss(fake_pred, ones_like(fake_pred))."
+    # )
+    return bce_loss(fake_pred, torch.ones_like(fake_pred))
 
 # ---------------------------------------------------------------------------
 # Phase 2 — WGAN / WGAN-GP loss (Wasserstein distance + gradient penalty)
@@ -95,10 +98,10 @@ def wgan_critic_loss(real_score: torch.Tensor, fake_score: torch.Tensor) -> torc
     output is an unbounded score, and this loss approximates the (negative)
     Earth-Mover / Wasserstein distance between real and fake distributions.
     """
-    raise NotImplementedError(
-        "TODO: implement wgan_critic_loss — return fake_score.mean() - real_score.mean()."
-    )
-
+    # raise NotImplementedError(
+    #     "TODO: implement wgan_critic_loss — return fake_score.mean() - real_score.mean()."
+    # )
+    return fake_score.mean() - real_score.mean()
 
 def wgan_generator_loss(fake_score: torch.Tensor) -> torch.Tensor:
     """Wasserstein generator loss: maximize fake_score, i.e. minimize -fake_score.
@@ -106,8 +109,8 @@ def wgan_generator_loss(fake_score: torch.Tensor) -> torch.Tensor:
     TODO(Phase 2 - WGAN training stability): implement
         return -fake_score.mean()
     """
-    raise NotImplementedError("TODO: implement wgan_generator_loss — return -fake_score.mean().")
-
+    # raise NotImplementedError("TODO: implement wgan_generator_loss — return -fake_score.mean().")
+    return -fake_score.mean()
 
 def gradient_penalty(
     critic: Callable[[torch.Tensor], torch.Tensor],
@@ -130,10 +133,33 @@ def gradient_penalty(
         5. Flatten the gradient to (B, -1), take its L2 norm per sample,
            and return `((grad_norm - 1) ** 2).mean()`.
     """
-    raise NotImplementedError(
-        "TODO: implement the WGAN-GP gradient penalty — see the docstring's 5-step recipe."
-    )
+    # raise NotImplementedError(
+    #     "TODO: implement the WGAN-GP gradient penalty — see the docstring's 5-step recipe."
+    # )
+    eps = torch.rand(
+        real.size(0),
+        *([1] * (real.dim() - 1)), 
+        device=device
+        )
 
+    interpolated = (
+        eps * real + (1 - eps) * fake
+    ).requires_grad_(True)
+
+    scores = critic(interpolated)
+
+    gradients = torch.autograd.grad(
+        outputs=scores,
+        inputs=interpolated,
+        grad_outputs=torch.ones_like(scores),
+        create_graph=True,
+        retain_graph=True,
+    )[0]
+
+    gradients = gradients.view(gradients.size(0), -1)
+    grad_norm = gradients.norm(2, dim=1)
+
+    return ((grad_norm - 1) ** 2).mean()
 
 # ---------------------------------------------------------------------------
 # Phase 3 — Pix2Pix loss (adversarial + L1 reconstruction)
