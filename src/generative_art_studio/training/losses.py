@@ -178,10 +178,16 @@ def pix2pix_generator_loss(
     The large `lambda_l1` weight is what makes Pix2Pix outputs stay close
     to the target structure rather than just "looking real."
     """
-    raise NotImplementedError(
-        "TODO: implement pix2pix_generator_loss — BCE-with-logits adversarial term "
-        "plus lambda_l1 * L1 reconstruction term."
+    # raise NotImplementedError(
+    #     "TODO: implement pix2pix_generator_loss — BCE-with-logits adversarial term "
+    #     "plus lambda_l1 * L1 reconstruction term."
+    # )
+    adv_loss = F.binary_cross_entropy_with_logits(
+        disc_fake_pred, 
+        torch.ones_like(disc_fake_pred)
     )
+    l1 = l1_loss(fake_img, target_img)
+    return adv_loss + lambda_l1 * l1
 
 
 def patchgan_discriminator_loss(disc_real_pred: torch.Tensor, disc_fake_pred: torch.Tensor) -> torch.Tensor:
@@ -207,7 +213,8 @@ def cycle_consistency_loss(real: torch.Tensor, reconstructed: torch.Tensor) -> t
     back). This is what constrains the generators without needing paired
     (input, target) examples like Pix2Pix does.
     """
-    raise NotImplementedError("TODO: implement cycle_consistency_loss — return l1_loss(reconstructed, real).")
+    # raise NotImplementedError("TODO: implement cycle_consistency_loss — return l1_loss(reconstructed, real).")
+    return l1_loss(reconstructed, real)
 
 
 def identity_loss(real: torch.Tensor, same_domain_output: torch.Tensor) -> torch.Tensor:
