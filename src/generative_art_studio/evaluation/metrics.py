@@ -44,10 +44,26 @@ def compute_fid(real_features: np.ndarray, fake_features: np.ndarray) -> float:
     complex-valued array due to numerical error — take `.real` before
     using it). Lower FID = more similar distributions = better generator.
     """
-    raise NotImplementedError(
-        "TODO: implement compute_fid — see the docstring for the Fréchet distance formula "
-        "and the np.cov / scipy.linalg.sqrtm hints."
+    # raise NotImplementedError(
+    #     "TODO: implement compute_fid — see the docstring for the Fréchet distance formula "
+    #     "and the np.cov / scipy.linalg.sqrtm hints."
+    # )
+    mu1 = real_features.mean(axis=0)
+    sigma1 = np.cov(real_features, rowvar=False)
+    
+    mu2 = fake_features.mean(axis=0)
+    sigma2 = np.cov(fake_features, rowvar=False)
+    
+    mean_diff = mu1 - mu2
+    cov_mean = linalg.sqrtm(sigma1 @ sigma2)
+    
+    if np.iscomplexobj(cov_mean):
+        cov_mean = cov_mean.real
+    
+    fid = mean_diff @ mean_diff + np.trace(
+        sigma1 + sigma2 - 2 * cov_mean
     )
+    return float(fid)
 
 
 def compute_inception_score(preds: np.ndarray, splits: int = 10) -> tuple[float, float]:
@@ -64,11 +80,26 @@ def compute_inception_score(preds: np.ndarray, splits: int = 10) -> tuple[float,
     Then return `(mean(scores across splits), std(scores across splits))`.
     Add a small epsilon (e.g. 1e-16) inside the logs to avoid log(0).
     """
-    raise NotImplementedError(
-        "TODO: implement compute_inception_score — see the docstring for the "
-        "per-split KL-divergence formula."
-    )
+    # raise NotImplementedError(
+    #     "TODO: implement compute_inception_score — see the docstring for the "
+    #     "per-split KL-divergence formula."
+    # )
+    eps = 1e-16
+    scores = []
 
+    for split in np.array_split(preds, splits):
+        p_y = split.mean(axis=0)
+
+        kl = split * (
+            np.log(split + eps) - np.log(p_y + eps)
+        )
+
+        kl = np.sum(kl, axis=1)
+
+        score = np.exp(np.mean(kl))
+        scores.append(score)
+
+    return float(np.mean(scores)), float(np.std(scores))
 
 class _InceptionFeatureExtractor(nn.Module):
     """Wraps torchvision's Inception v3 to expose both pool features (for FID)
