@@ -85,10 +85,14 @@ def generate_samples(model_key: str, model: nn.Module, num_samples: int, seed: i
     Seed the RNG first if `seed is not None` (`torch.manual_seed(seed)`) so
     the UI's "regenerate with this seed" control is reproducible.
     """
-    raise NotImplementedError(
-        "TODO: implement generate_samples — branch on model_key to call either "
-        "VAE.sample(...) or a GAN generator on a sampled latent batch. See the docstring."
-    )
+    if seed is not None:
+        torch.manual_seed(seed)
+    if model_key == "vae":
+        return model.sample(num_samples, device=device)
+    
+    from ..utils.latent_space import sample_latent
+    z = sample_latent(num_samples, MODEL_REGISTRY[model_key].latent_dim, device)
+    return model(z)
 
 
 def export_image(image: torch.Tensor, path: str | Path, scale_factor: int = 4) -> Path:
