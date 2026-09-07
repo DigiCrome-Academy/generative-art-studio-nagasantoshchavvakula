@@ -85,10 +85,14 @@ def generate_samples(model_key: str, model: nn.Module, num_samples: int, seed: i
     Seed the RNG first if `seed is not None` (`torch.manual_seed(seed)`) so
     the UI's "regenerate with this seed" control is reproducible.
     """
-    raise NotImplementedError(
-        "TODO: implement generate_samples — branch on model_key to call either "
-        "VAE.sample(...) or a GAN generator on a sampled latent batch. See the docstring."
-    )
+    if seed is not None:
+        torch.manual_seed(seed)
+    if model_key == "vae":
+        return model.sample(num_samples, device=device)
+    
+    from ..utils.latent_space import sample_latent
+    z = sample_latent(num_samples, MODEL_REGISTRY[model_key].latent_dim, device)
+    return model(z)
 
 
 def export_image(image: torch.Tensor, path: str | Path, scale_factor: int = 4) -> Path:
@@ -105,11 +109,30 @@ def export_image(image: torch.Tensor, path: str | Path, scale_factor: int = 4) -
          (create parent directories with `Path(path).parent.mkdir(parents=True, exist_ok=True)`).
       4. Return the `Path` you saved to.
     """
-    raise NotImplementedError(
-        "TODO: implement export_image — denormalize, upsample by scale_factor, "
-        "convert to PIL, and save a high-resolution PNG. See the docstring."
+    # raise NotImplementedError(
+    #     "TODO: implement export_image — denormalize, upsample by scale_factor, "
+    #     "convert to PIL, and save a high-resolution PNG. See the docstring."
+    # )
+    image = image.unsqueeze(0)
+    image = denormalize(image).squeeze(0)
+    
+    image = torch.nn.functional.interpolate(
+        image.unsqueeze(0),
+        scale_factor=scale_factor,
+        mode="bicubic",
+        align_corners=False
+    ).squeeze(0)
+    
+    image = image.clamp(0, 1)
+    
+    array = (
+        image.permute(1, 2, 0).mul(255).byte().cpu().numpy()
     )
-
+    
+    output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(array).save(output_path)
+    return output_path
 
 class Gallery:
     """In-memory gallery of generated artwork for the platform's gallery tab.
