@@ -19,8 +19,10 @@ from PIL import Image
 from ..config import GAN_LATENT_DIM, IMAGE_CHANNELS, VAE_LATENT_DIM
 from ..models.autoencoders.vae import VAE
 from ..models.gans.vanilla_gan import VanillaGenerator
+from ..models.gans.dcgan import DCGANGenerator
+# from ..models.gans.wgan import WGANCritic
+from ..models.advanced.cyclegan import CycleGANGenerator
 from ..utils.viz import denormalize
-
 
 @dataclass
 class ModelEntry:
@@ -39,6 +41,11 @@ def _build_vae() -> nn.Module:
 def _build_vanilla_gan() -> nn.Module:
     return VanillaGenerator(latent_dim=GAN_LATENT_DIM, img_channels=IMAGE_CHANNELS)
 
+def _build_dcgan() -> nn.Module:
+    return DCGANGenerator(latent_dim=100, img_channels=IMAGE_CHANNELS, feature_maps=32)
+
+def _build_cyclegan() -> nn.Module:
+    return CycleGANGenerator(features=32, num_residual_blocks=4)
 
 # Add an entry here for every generator you want selectable in the platform
 # UI (DCGAN, Conditional GAN, Pix2Pix, CycleGAN, ...) once you've
@@ -46,6 +53,9 @@ def _build_vanilla_gan() -> nn.Module:
 MODEL_REGISTRY: dict[str, ModelEntry] = {
     "vae": ModelEntry("Variational Autoencoder", "Sample from a learned latent Gaussian.", _build_vae, VAE_LATENT_DIM),
     "vanilla_gan": ModelEntry("Vanilla GAN", "Fully-connected Generator/Discriminator pair.", _build_vanilla_gan, GAN_LATENT_DIM),
+    "dcgan": ModelEntry("DCGAN", "Deep Convolutional GAN for image generation.", _build_dcgan, 100),
+    "wgan_gp": ModelEntry("WGAN-GP", "Wasserstein GAN with gradient penalty.", lambda: DCGANGenerator(latent_dim=100, img_channels=IMAGE_CHANNELS, feature_maps=32), 100),
+    "cyclegan": ModelEntry("CycleGAN", "Unpaired image-to-image translation.", _build_cyclegan, 100),
 }
 
 
@@ -89,6 +99,12 @@ def generate_samples(model_key: str, model: nn.Module, num_samples: int, seed: i
         torch.manual_seed(seed)
     if model_key == "vae":
         return model.sample(num_samples, device=device)
+    
+    if model_key == "cyclegan":
+        raise ValueError(
+            "CycleGAN requires source content images and cannot generate "
+            "samples from a latent vector."
+        )
     
     from ..utils.latent_space import sample_latent
     z = sample_latent(num_samples, MODEL_REGISTRY[model_key].latent_dim, device)
