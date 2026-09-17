@@ -39,10 +39,10 @@ class ResidualBlock(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        raise NotImplementedError(
-            "TODO: implement the residual skip connection — return x + self.block(x)."
-        )
-
+        # raise NotImplementedError(
+        #     "TODO: implement the residual skip connection — return x + self.block(x)."
+        # )
+        return x + self.block(x)
 
 class CycleGANGenerator(nn.Module):
     """Encoder (downsample) -> N residual blocks -> Decoder (upsample).

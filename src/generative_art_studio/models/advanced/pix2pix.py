@@ -52,10 +52,11 @@ class UNetUp(nn.Module):
         the channel dimension: `torch.cat([upsampled, skip_input], dim=1)`.
         This is what makes it a *U-Net* rather than a plain encoder-decoder.
         """
-        raise NotImplementedError(
-            "TODO: upsample x with self.block, then torch.cat([x, skip_input], dim=1)."
-        )
-
+        # raise NotImplementedError(
+        #     "TODO: upsample x with self.block, then torch.cat([x, skip_input], dim=1)."
+        # )
+        unsampled = self.block(x)
+        return torch.cat([unsampled, skip_input], dim=1)
 
 class UNetGenerator(nn.Module):
     """64x64 U-Net generator: 4 down blocks, bottleneck, 4 up blocks with skips."""
