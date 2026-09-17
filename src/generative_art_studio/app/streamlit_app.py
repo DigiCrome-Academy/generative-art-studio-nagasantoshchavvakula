@@ -48,7 +48,7 @@ with st.sidebar:
     "vanilla_gan": "checkpoints/vanilla_gan_quality.pt",
     "dcgan": "checkpoints/dcgan_quality.pt",
     "wgan_gp": "checkpoints/wgan_gp_quality.pt",
-    "cyclegan": "checkpoints/cyclegan_a2b_quality.pt",
+    # "cyclegan": "checkpoints/cyclegan_a2b_quality.pt",
     }
 
     checkpoint_path = checkpoint_options[model_key]
