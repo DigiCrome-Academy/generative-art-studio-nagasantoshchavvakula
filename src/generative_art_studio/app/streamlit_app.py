@@ -42,7 +42,23 @@ with st.sidebar:
     model_key = st.selectbox("Model", options=list_available_models())
     num_samples = st.slider("Number of samples", min_value=1, max_value=16, value=8)
     seed = st.number_input("Seed (for reproducible generation)", min_value=0, value=42, step=1)
-    checkpoint_path = st.text_input("Checkpoint path (optional)", value="")
+    # checkpoint_path = st.text_input("Checkpoint path (optional)", value="")
+    checkpoint_options = {
+    "vae": "checkpoints/vae_quality.pt",
+    "vanilla_gan": "checkpoints/vanilla_gan_quality.pt",
+    "dcgan": "checkpoints/dcgan_quality.pt",
+    "wgan_gp": "checkpoints/wgan_gp_quality.pt",
+    # "cyclegan": "checkpoints/cyclegan_a2b_quality.pt",
+    }
+
+    checkpoint_path = checkpoint_options[model_key]
+
+    st.text_input(
+        "Checkpoint",
+        value=Path(checkpoint_path).name,
+        key=f"checkpoint_display_{model_key}",
+    )
+        
     generate_clicked = st.button("✨ Generate", use_container_width=True)
     st.divider()
     st.subheader("Interpolation")
@@ -61,7 +77,7 @@ with tab_generate:
         try:
             images = generate_samples(model_key, model, num_samples, seed=int(seed), device=device)
             grid = make_image_grid(images, nrow=min(num_samples, 4))
-            st.image(grid.permute(1, 2, 0).numpy(), caption=f"{model_key} — seed {seed}", use_container_width=True)
+            st.image(grid.permute(1, 2, 0).cpu().numpy(), caption=f"{model_key} — seed {seed}", use_container_width=True)
             for img in images:
                 st.session_state.gallery.add(img, model_key, seed=int(seed))
         except NotImplementedError as exc:

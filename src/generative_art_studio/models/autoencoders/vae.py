@@ -64,10 +64,13 @@ class VAE(nn.Module):
         we sample eps from a fixed N(0, I) and compute z as a deterministic,
         differentiable function of (mu, logvar, eps).
         """
-        raise NotImplementedError(
-            "TODO: implement the reparameterization trick — "
-            "std = exp(0.5 * logvar); eps = torch.randn_like(std); return mu + eps * std."
-        )
+        # raise NotImplementedError(
+        #     "TODO: implement the reparameterization trick — "
+        #     "std = exp(0.5 * logvar); eps = torch.randn_like(std); return mu + eps * std."
+        # )
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return mu + eps * std
 
     def encode(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         return self.encoder(x)

@@ -38,16 +38,35 @@ class DCGANGenerator(nn.Module):
         super().__init__()
         self.latent_dim = latent_dim
         self.feature_maps = feature_maps
-        self.net: nn.Sequential | None = None  # TODO: build per the docstring above
-        raise NotImplementedError(
-            "TODO: build self.net as described in the class docstring, "
-            "then remove this raise."
+        # self.net: nn.Sequential | None = None  # TODO: build per the docstring above
+        # raise NotImplementedError(
+        #     "TODO: build self.net as described in the class docstring, "
+        #     "then remove this raise."
+        # )
+        self.net = nn.Sequential(
+            nn.ConvTranspose2d(latent_dim, feature_maps * 8, 4, 1, 0),
+            nn.BatchNorm2d(feature_maps * 8),
+            nn.ReLU(inplace=True),
+            
+            nn.ConvTranspose2d(feature_maps * 8, feature_maps * 4, 4, 2, 1),
+            nn.BatchNorm2d(feature_maps * 4),
+            nn.ReLU(inplace=True),
+            
+            nn.ConvTranspose2d(feature_maps * 4, feature_maps * 2, 4, 2, 1),
+            nn.BatchNorm2d(feature_maps * 2),
+            nn.ReLU(inplace=True),
+            
+            nn.ConvTranspose2d(feature_maps * 2, feature_maps, 4, 2, 1),
+            nn.BatchNorm2d(feature_maps),
+            nn.ReLU(inplace=True),
+            
+            nn.ConvTranspose2d(feature_maps, img_channels, 4, 2, 1),
+            nn.Tanh(),
         )
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         z = z.view(z.size(0), self.latent_dim, 1, 1)
         return self.net(z)
-
 
 class DCGANDiscriminator(nn.Module):
     """(B, img_channels, 64, 64) image -> (B, 1) real/fake probability.
@@ -67,16 +86,34 @@ class DCGANDiscriminator(nn.Module):
     def __init__(self, img_channels: int = 3, feature_maps: int = 64):
         super().__init__()
         self.feature_maps = feature_maps
-        self.net: nn.Sequential | None = None  # TODO: build per the docstring above
-        raise NotImplementedError(
-            "TODO: build self.net as described in the class docstring, "
-            "then remove this raise."
+        # self.net: nn.Sequential | None = None  # TODO: build per the docstring above
+        # raise NotImplementedError(
+        #     "TODO: build self.net as described in the class docstring, "
+        #     "then remove this raise."
+        # )
+        self.net = nn.Sequential(
+            nn.Conv2d(img_channels, feature_maps, 4, 2, 1),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            nn.Conv2d(feature_maps, feature_maps * 2, 4, 2, 1),
+            nn.BatchNorm2d(feature_maps * 2),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            nn.Conv2d(feature_maps * 2, feature_maps * 4, 4, 2, 1),
+            nn.BatchNorm2d(feature_maps * 4),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            nn.Conv2d(feature_maps * 4, feature_maps * 8, 4, 2, 1),
+            nn.BatchNorm2d(feature_maps * 8),
+            nn.LeakyReLU(0.2, inplace=True),
+
+            nn.Conv2d(feature_maps * 8, 1, 4, 1, 0),
+            nn.Sigmoid(),
         )
 
     def forward(self, img: torch.Tensor) -> torch.Tensor:
         out = self.net(img)
         return out.view(-1, 1)
-
 
 def weights_init_dcgan(module: nn.Module) -> None:
     """DCGAN paper weight init: N(0, 0.02) for Conv/ConvTranspose/BatchNorm.
